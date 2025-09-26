@@ -1,35 +1,147 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, MoreHorizontal, BarChart3 } from "lucide-react";
 import TradingModal from "@/components/TradingModal";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Plotly from 'plotly.js-dist';
+
+interface CoinGeckoData {
+  id: string;
+  symbol: string;
+  name: string;
+  current_price: number;
+  market_cap: number;
+  total_volume: number;
+  high_24h: number;
+  low_24h: number;
+  price_change_24h: number;
+  price_change_percentage_24h: number;
+  last_updated: string;
+}
 
 const MarketOverview = () => {
-  const { symbol } = useParams<{ symbol: string }>();
+  // const { symbol } = useParams<{ symbol: string }>();
   const [showLongDetails, setShowLongDetails] = useState(false);
   const [showShortDetails, setShowShortDetails] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [time, setTime] = useState<String>("1D");
   const [modalType, setModalType] = useState<"long" | "short">("long");
 
-  // Mock data based on symbol
+
+  // timestamps in seconds
+  const TIME_1D_HRS = 24*60*60*1000;
+
+  const TIME_1W_SEC = TIME_1D_HRS*7;
+
+  const TIME_1M_SEC = TIME_1W_SEC*30;
+
+  // For now the only marketData is for SOL...this is an MVP so we are trying to focus on functionality and feasibility of the idea
+
+  const queryClient = useQueryClient();
+  const cachedData = queryClient.getQueryData<CoinGeckoData>(["tokenData", "solana"])
+  
   const marketData = {
-    symbol: symbol?.toUpperCase() || "sSOL",
+    img: "/assets/sol.svg",
+    symbol: "$sSOL",
     name: "Synthetic Solana",
-    price: "$142.35",
-    change: 8.42,
-    high24h: "$148.92",
-    low24h: "$134.17",
-    volume: "$24.5M",
-    marketCap: "$3.2B"
+    price: cachedData ? `$${cachedData.current_price.toLocaleString()}` : "...",
+    change: cachedData ? cachedData.price_change_percentage_24h : 0,
+    high24h: cachedData ? `$${cachedData.high_24h.toLocaleString()}` : "...",
+    low24h: cachedData ? `$${cachedData.low_24h.toLocaleString()}` : "...",
+    volume: cachedData ? `$${(cachedData.total_volume / 1e6).toFixed(1)}M` : "...",
+    marketCap: cachedData ? `$${(cachedData.market_cap / 1e9).toFixed(1)}B` : "..."
   };
 
+
   const isPositive = marketData.change > 0;
+
+  const handleGraph = async (selectedTime: String) => {
+    const currentDate = Date.now();
+    let timeStamp;
+    switch (selectedTime) {
+      case "1W":
+        timeStamp = (currentDate - TIME_1W_SEC);
+        break;
+      case "1M":
+        timeStamp = (currentDate - TIME_1M_SEC);
+        break;
+      default:
+        timeStamp = (currentDate - TIME_1D_HRS);
+        break;
+    }
+    
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/coins/solana/market_chart/range?vs_currency=usd&from=${Math.floor(timeStamp / 1000)}&to=${Math.floor(Date.now() / 1000)}&x_cg_demo_api_key=${import.meta.env.VITE_COINGECKO_API_KEY}`
+    );
+    
+    if (!response.ok) throw new Error('There is an issue with this request(MarketGraph)');
+    const data = await response.json();
+    return data;
+  };
 
   const handleTrade = (type: "long" | "short") => {
     setModalType(type);
     setModalOpen(true);
   };
+
+  const { data: graphData } = useQuery({
+    queryKey: ["tokenGraphData", "solana", time],
+    queryFn: () => handleGraph(time),
+    refetchInterval: 20000,
+    refetchIntervalInBackground: false
+  });
+
+  useEffect(() => {
+    if (graphData?.prices) {
+      const trace = {
+        x: graphData.prices.map(p => new Date(p[0])),
+        y: graphData.prices.map(p => p[1]),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Price',
+        line: {
+          color: `${isPositive ? '#22c55e' : "red" }`
+        }
+      };
+
+      const layout = {
+        title: 'Token Price Over Time',
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        hoverlabel: {
+          bgcolor: 'grey',
+          font: {
+            family: 'Courier New, monospace',
+            size: 12,
+            color: '#ffffff'
+          },
+        },
+        xaxis: { 
+          title: 'Date',
+          gridcolor: '#1f2937',
+          showgrid: false
+        },
+        yaxis: { 
+          title: 'Price (USD)',
+          gridcolor: '#1f2937',
+          showgrid: true
+        },
+        margin: { t: 30 },
+        font: {
+          color: '#9ca3af'  // Gray color for text
+        }
+      };
+
+      const config = {
+        responsive: true,
+        displayModeBar: false  // Hides the plotly toolbar
+      };
+
+      Plotly.newPlot('plotlyChart', [trace], layout, config);
+    }
+  }, [graphData]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,9 +150,14 @@ const MarketOverview = () => {
           {/* Header Section */}
           <div className="animate-fade-in">
             <div className="flex items-center justify-between mb-6">
-              <div className="space-y-2">
+              <div className="space-y-2 flex items-center gap-4">
+                <div>
+              <img className="w-20 h-20" src = {marketData.img}/>
+               </div>
+               <div>
                 <h1 className="text-4xl font-bold">{marketData.symbol}</h1>
                 <p className="text-lg text-muted-foreground">{marketData.name}</p>
+                </div>
               </div>
               <Badge variant={isPositive ? "default" : "destructive"} className="text-lg px-3 py-1">
                 {isPositive ? "+" : ""}{marketData.change.toFixed(2)}%
@@ -76,22 +193,16 @@ const MarketOverview = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold">Price Chart</h2>
                 <div className="flex space-x-2">
-                  {["1H", "4H", "1D", "1W", "1M"].map((timeframe) => (
-                    <Button key={timeframe} variant="outline" size="sm">
+                  {["1D", "1W", "1M"].map((timeframe) => (
+                    <Button className={time == timeframe ? 'bg-gray-200' : ""} key={timeframe} variant="outline" size="sm" onClick={()=>{setTime(timeframe);handleGraph}}>
                       {timeframe}
                     </Button>
                   ))}
                 </div>
               </div>
 
-              {/* Placeholder Chart */}
-              <div className="h-64 bg-muted/30 rounded-lg flex items-center justify-center border-2 border-dashed border-border">
-                <div className="text-center space-y-2">
-                  <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground" />
-                  <p className="text-muted-foreground">Interactive Chart Placeholder</p>
-                  <p className="text-sm text-muted-foreground">Price history and technical analysis</p>
-                </div>
-              </div>
+              {/* Price Chart */}
+              <div id="plotlyChart" className="h-[50vh] rounded-lg"></div>
             </div>
           </div>
 

@@ -9,43 +9,37 @@ const Markets = () => {
   const markets = [
     {
       symbol: "$sSOL",
+      img: "/assets/sol.svg",
       name: "Synthetic Solana",
-      price: "$142.35",
-      change: 8.42,
-      volume: "$24.5M",
-      marketCap: "$3.2B"
+      coingeckoId: "solana"
     },
     {
       symbol: "$sBTC",
+      img: "/assets/btc.svg",
       name: "Synthetic Bitcoin",
-      price: "$67,890",
-      change: -2.15,
-      volume: "$156.8M",
-      marketCap: "$1.3T"
     },
     {
       symbol: "$sETH",
+      img: "/assets/eth.svg",
       name: "Synthetic Ethereum",
-      price: "$3,421",
-      change: 5.67,
-      volume: "$89.2M",
-      marketCap: "$412B"
     },
     {
       symbol: "$sAAPL",
+      img: "/assets/appl.svg",
       name: "Synthetic Apple",
-      price: "$189.42",
-      change: 1.23,
-      volume: "$45.6M",
-      marketCap: "$2.9T"
+      price: "...",
+      change: 0,
+      volume: "...",
+      marketCap: "..."
     },
     {
       symbol: "$sTSLA",
+      img: "/assets/tsla.svg",
       name: "Synthetic Tesla",
-      price: "$248.76",
-      change: -4.89,
-      volume: "$78.3M",
-      marketCap: "$790B"
+      price: "...",
+      change: 0,
+      volume: "...",
+      marketCap: "..."
     }
   ];
 
@@ -68,7 +62,7 @@ const Markets = () => {
             </div>
 
             {/* Search */}
-            <div className="relative max-w-md">
+            <div className="relative max-w-md border">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search markets..."
@@ -101,7 +95,18 @@ const Markets = () => {
 
           {/* Markets Grid */}
           <div className="space-y-4">
+            <div className="flex justify-between items-center gap-3">
             <h2 className="text-2xl font-semibold">Available Markets</h2>
+            <div>
+              <a href="https://www.coingecko.com/en/api/">
+              <img 
+                src="/assets/attribution_coingecko.avif" 
+                alt="coingecko_attribution" 
+                className="w-40 sm:w-48 md:w-56 lg:w-64 h-auto object-contain" 
+              />
+              </a>
+            </div>
+            </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredMarkets.map((market, index) => (
                 <div key={market.symbol} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>

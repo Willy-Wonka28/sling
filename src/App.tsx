@@ -9,6 +9,8 @@ import Markets from "./pages/Markets";
 import StockScreener from "./pages/StockScreener";
 import MarketOverview from "./pages/MarketOverview";
 import NotFound from "./pages/NotFound";
+import "@solana/wallet-adapter-react-ui/styles.css";
+import { SolanaProvider } from "@/client/solana_provider";
 
 const queryClient = new QueryClient();
 
@@ -17,8 +19,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <SolanaProvider>
       <BrowserRouter>
-        <div className="min-h-screen bg-background">
+        <div className="max-h-screen bg-background">
           <Navigation />
           <main>
             <Routes>
@@ -32,6 +35,7 @@ const App = () => (
           </main>
         </div>
       </BrowserRouter>
+      </SolanaProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

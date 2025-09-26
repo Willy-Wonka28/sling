@@ -1,6 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, TrendingUp } from "lucide-react";
+import { CustomWalletButton } from "./CustomWalletButton";
+import '@solana/wallet-adapter-react-ui/styles.css';
 
 const Navigation = () => {
   const location = useLocation();
@@ -37,9 +39,9 @@ const Navigation = () => {
             ))}
           </nav>
 
-          <Button variant="default" size="sm" className="hidden md:flex">
-            Connect Wallet
-          </Button>
+          <div className="hidden md:block">
+            <CustomWalletButton />
+          </div>
 
           <Button variant="ghost" size="sm" className="md:hidden">
             <Search className="h-4 w-4" />

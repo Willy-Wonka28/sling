@@ -5,15 +5,18 @@ import { ArrowRight, TrendingUp, Shield, Zap } from "lucide-react";
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-20 pb-32">
-        <div className="text-center space-y-8 animate-fade-in">
+      <section className="container mx-auto px-4 pt-20">
+        <div className="text-center space-y-4 animate-fade-in">
           <div className="space-y-4">
-            <h1 className="text-6xl md:text-7xl font-bold leading-tight">
-              Tokenize{" "}
-              <DynamicText />
+            <h1 className=" flex justify-center items-center gap-5 text-6xl md:text-7xl font-bold leading-tight">
+              Tokenize Anything*
             </h1>
+            <h5 className=" flex justify-center items-center gap-5 text-4xl md:text-6xl font-bold leading-tight">
+              Trade{" "}
+              <DynamicText />
+            </h5>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               The world's most advanced prediction market platform.
               <br />
@@ -37,7 +40,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Tokenize?</h2>
@@ -77,9 +80,9 @@ const Landing = () => {
             </p>
           </div>
         </div>
-      </section>
+      </section> */}
 
-      {/* Stats Section */}
+      {/* Stats Section
       <section className="border-t border-border py-20">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 text-center">
@@ -101,7 +104,7 @@ const Landing = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };

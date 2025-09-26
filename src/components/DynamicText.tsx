@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 const DynamicText = () => {
-  const words = ["Everything*", "Anything*", "$NVDA", "$QQQ", "$TSLA", "$BTC", "$ETH"];
+  const words = ["$sNVDA", "$sQQQ", "$sTSLA", "$sBTC", "$sETH", "$sSOL"];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -18,11 +18,23 @@ const DynamicText = () => {
   }, [words.length]);
 
   const getWordColor = (word: string) => {
-    if (word.includes("NVDA") || word.includes("BTC") || word.includes("ETH")) {
+    if (word.includes("NVDA")) {
       return "text-success";
     }
     if (word.includes("TSLA")) {
       return "text-destructive";
+    }
+    if (word.includes("QQQ")) {
+      return "text-[#000000]";
+    }
+    if (word.includes("BTC")) {
+      return "text-[#F7931A]";
+    }
+    if (word.includes("ETH")) {
+      return "text-[#497493]";
+    }
+    if (word.includes("SOL")) {
+      return "text-[#9945FF]";
     }
     return "text-foreground";
   };
