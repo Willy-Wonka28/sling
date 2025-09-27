@@ -5,6 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { Transaction, SystemProgram, PublicKey } from '@solana/web3.js';
+import { supabase } from "@/client/supabase_client";
 
 interface TradingModalProps {
   isOpen: boolean;
@@ -16,12 +19,68 @@ interface TradingModalProps {
 const TradingModal = ({ isOpen, onClose, type, symbol }: TradingModalProps) => {
   const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState("");
+  const [clickedLoad, setClickedLoad] = useState(false);
+  const { connection } = useConnection();
+  const { publicKey, sendTransaction } = useWallet();
 
-  const handleSubmit = () => {
-    // Handle trade submission
-    console.log("Trade submitted:", { type, symbol, amount, duration });
-    onClose();
-  };
+const handleSubmit = async () => {
+  setClickedLoad(true);
+  if (!publicKey) {
+    console.error("Wallet not connected");
+    return;
+  }
+
+  try {
+    // 1. Convert amount from SOL  → lamports
+    const lamports = parseInt(amount) * 1_000_000_000; 
+
+    // 2. Create transaction
+    const tnx = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: publicKey,
+        toPubkey: new PublicKey(import.meta.env.VITE_VAULT_PUBLIC_KEY as string),
+        lamports,
+      })
+    );
+
+    // 3. Request wallet to sign & send
+    const signature = await sendTransaction(tnx, connection);
+
+    // 4. Confirm transaction
+    await connection.confirmTransaction(signature, "processed");
+    console.log(`Transaction confirmed: ${signature}`);
+
+    // 5. Prepare duration → seconds
+    const durationSeconds = {
+      "1h": 3600,
+      "4h": 4 * 3600,
+      "1d": 24 * 3600,
+      "1w": 7 * 24 * 3600,
+      "1m": 30 * 24 * 3600,
+    }[duration] || 0;
+
+    // 6. Call Supabase Edge Function
+    const { data, error } = await supabase.functions.invoke("place_bet", {
+      body: {
+        pubkey: publicKey.toBase58(),
+        intent: type === "long",
+        amount: lamports,
+        timeline: durationSeconds,
+        start_ts: new Date().toISOString(),
+        tx_signature: signature,
+      },
+    });
+
+    if (error) throw error;
+    console.log("✅ Bet recorded:", data);
+
+  } catch (err) {
+    console.error("❌ Transaction or DB update failed:", err);
+  }
+
+  onClose();
+};
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -43,7 +102,7 @@ const TradingModal = ({ isOpen, onClose, type, symbol }: TradingModalProps) => {
           <div className="space-y-2">
             <Label htmlFor="amount" className="flex items-center space-x-1">
               <DollarSign className="h-4 w-4" />
-              <span>Position Size</span>
+              <span>Position Size (in SOL)</span>
             </Label>
             <Input
               id="amount"
@@ -63,7 +122,7 @@ const TradingModal = ({ isOpen, onClose, type, symbol }: TradingModalProps) => {
               <SelectTrigger>
                 <SelectValue placeholder="Select duration" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="1h">1 Hour</SelectItem>
                 <SelectItem value="4h">4 Hours</SelectItem>
                 <SelectItem value="1d">1 Day</SelectItem>
@@ -95,9 +154,9 @@ const TradingModal = ({ isOpen, onClose, type, symbol }: TradingModalProps) => {
                   ? "bg-success hover:bg-success/90 text-success-foreground" 
                   : "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               }`}
-              disabled={!amount || !duration}
+              disabled={!amount || !duration || !publicKey}
             >
-              Place {type === "long" ? "Long" : "Short"} Order
+             {clickedLoad ? `Placing ${type === "long" ? "Long" : "Short"} Order...` : `Place ${type === "long" ? "Long" : "Short"} Order`} 
             </Button>
           </div>
         </div>

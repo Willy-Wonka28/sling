@@ -159,7 +159,7 @@ const MarketOverview = () => {
                 <p className="text-lg text-muted-foreground">{marketData.name}</p>
                 </div>
               </div>
-              <Badge variant={isPositive ? "default" : "destructive"} className="text-lg px-3 py-1">
+              <Badge variant={isPositive ? "success" : "destructive"} className="text-lg px-3 py-1">
                 {isPositive ? "+" : ""}{marketData.change.toFixed(2)}%
               </Badge>
             </div>
@@ -193,7 +193,7 @@ const MarketOverview = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold">Price Chart</h2>
                 <div className="flex space-x-2">
-                  {["1D", "1W", "1M"].map((timeframe) => (
+                  {["1H", "1D", "1W", "1M"].map((timeframe) => (
                     <Button className={time == timeframe ? 'bg-gray-200' : ""} key={timeframe} variant="outline" size="sm" onClick={()=>{setTime(timeframe);handleGraph}}>
                       {timeframe}
                     </Button>
