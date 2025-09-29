@@ -12,7 +12,7 @@ export const CustomWalletButton = () => {
 
   return (
     <WalletMultiButton 
-      className="!bg-primary hover:!bg-primary/90"
+      className="!bg-black"
       startIcon={undefined}
     >
       {publicKey ? formatPubKey(publicKey) : 'Connect Wallet'}
