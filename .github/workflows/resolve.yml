@@ -3,7 +3,7 @@ name: Resolve Markets Cron Job
 on:
   schedule:
     # Runs every 10 minutes
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   
   # Allows manual triggering from GitHub UI
   workflow_dispatch:
@@ -16,13 +16,13 @@ jobs:
       - name: Call Supabase Edge Function
         run: |
           response=$(curl -s -w "\n%{http_code}" -X POST \
-            https://hxyuafofgephisrbaqgp.supabase.co/functions/v1/resolve_market \
+            https://hxyuafofgephisrbaqgp.supabase.co/functions/v1/resolve_markets \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{}')
           
           # Extract HTTP status code and response body
-          
+
           http_code=$(echo "$response" | tail -n1)
           response_body=$(echo "$response" | sed '$d')
           
