@@ -1,0 +1,43 @@
+name: Resolve Markets Cron Job
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
+  
+  # Allows manual triggering from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  resolve-markets:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Call Supabase Edge Function
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            https://hxyuafofgephisrbaqgp.supabase.co/functions/v1/resolve_market \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          
+          # Extract HTTP status code and response body
+          
+          http_code=$(echo "$response" | tail -n1)
+          response_body=$(echo "$response" | sed '$d')
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $response_body"
+          
+          # Check if request was successful
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "✅ Market resolution completed successfully"
+          else
+            echo "❌ Market resolution failed with status $http_code"
+            echo "Response body: $response_body"
+            exit 1
+          fi
+
+      - name: Log execution time
+        run: |
+          echo "Market resolution job executed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
