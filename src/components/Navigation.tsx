@@ -20,7 +20,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
             <TrendingUp className="h-6 w-6" />
-            <span className="text-xl font-bold">Tokenize</span>
+            <span className="text-xl font-bold">Sling</span>
           </Link>
 
           <nav className="hidden md:flex items-center space-x-8">
