@@ -15,7 +15,7 @@ import { SolanaProvider } from "@/client/solana_provider";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={queryClient} >
     <TooltipProvider>
       <Toaster />
       <Sonner />
